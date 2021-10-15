@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item
+       android:id="@+id/bottom_bar_home"
+        android:title="@string/home"
+        android:icon="@drawable/home_24"
+        android:enabled="true"/>
+    <item
+        android:id="@+id/bottom_bar_search"
+        android:title="@string/library"
+        android:icon="@drawable/music_library_24"
+        android:enabled="true" />
+    <item
+        android:id="@+id/bottom_bar_setting"
+        android:title="@string/setting"
+        android:icon="@drawable/setting_24"
+        android:enabled="true"/>
+
+</menu>
