@@ -9,6 +9,7 @@ import android.os.Build;
 import android.os.Bundle;
 
 import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.LinearLayoutManager;
 
 import android.provider.MediaStore;
 import android.util.Log;
@@ -93,6 +94,7 @@ private FragmentDeviceMusicFragementBinding binding;
            }
            cursor.close();
            SongListAdapter songListAdapter=new SongListAdapter(this.getContext(),songs);
+           binding.songsRecyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
            binding.songsRecyclerView.setAdapter(songListAdapter);
 
        }
