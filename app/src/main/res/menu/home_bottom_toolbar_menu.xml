@@ -8,7 +8,7 @@
         android:icon="@drawable/home_24"
         android:enabled="true"/>
     <item
-        android:id="@+id/bottom_bar_search"
+        android:id="@+id/bottom_bar_library"
         android:title="@string/library"
         android:icon="@drawable/music_library_24"
         android:enabled="true" />
