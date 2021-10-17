@@ -44,14 +44,14 @@ public class HomeFragment extends Fragment {
         // Inflate the layout for this fragment
         binding=FragmentHomeBinding.inflate( inflater,container,false);
         View view=binding.getRoot();
-        binding.spotifyLogin.setOnClickListener(new View.OnClickListener() {
+       /* binding.spotifyLogin.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 Log.d(TAG, "onClick: loggin");
                 authenticateSpotify();
             }
 
-        });
+        });*/
 
         return view;
 
