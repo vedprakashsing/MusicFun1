@@ -9,9 +9,6 @@ import android.os.Build;
 import android.os.Bundle;
 
 import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentManager;
-import androidx.fragment.app.FragmentTransaction;
-import androidx.recyclerview.widget.LinearLayoutManager;
 
 import android.provider.MediaStore;
 import android.util.Log;
@@ -57,11 +54,11 @@ private FragmentDeviceMusicFragementBinding binding;
         String sortOrder=MediaStore.Audio.Media.DISPLAY_NAME+" ASC";
 
         Uri collection;
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-           collection = MediaStore.Audio.Media.getContentUri(MediaStore.VOLUME_EXTERNAL);
-        } else {
+        //if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+           // collection = MediaStore.Audio.Media.getContentUri(MediaStore.VOLUME_EXTERNAL);
+        //} else {
             collection = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI;
-        }
+        //}
 
        try( Cursor cursor = this.getContext().getContentResolver().query(
                 collection,
@@ -87,7 +84,7 @@ private FragmentDeviceMusicFragementBinding binding;
                String artist = cursor.getString(artistColumn);
                String title = cursor.getString(titleColumn);
 
-               Log.d(TAG, "onCreateView: huu" + name+","+id+","+duration+","+size+","+artist+","+title);
+               Log.d(TAG, "onCreateView: huu" + name);
 
                Uri contentUri = ContentUris.withAppendedId(
                        MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, id);
@@ -95,11 +92,8 @@ private FragmentDeviceMusicFragementBinding binding;
                songs.add(song);
            }
            cursor.close();
-
            SongListAdapter songListAdapter=new SongListAdapter(this.getContext(),songs);
-           binding.songsRecyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
            binding.songsRecyclerView.setAdapter(songListAdapter);
-
 
        }
         return view;
