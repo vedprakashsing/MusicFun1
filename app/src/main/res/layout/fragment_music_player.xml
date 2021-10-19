@@ -26,13 +26,16 @@
         app:cardCornerRadius="5dp">
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content">
+            android:layout_height="match_parent"
+            android:background="@drawable/player_area_background">
         <ImageView
             android:id="@+id/musicPlayerPlayButton"
             android:layout_width="30dp"
             android:layout_height="30dp"
             android:src="@drawable/pause"
-            android:layout_margin="8dp"/>
+            android:layout_marginTop="8dp"
+            android:layout_marginStart="8dp"
+            android:layout_marginBottom="8dp"/>
             <SeekBar
                 android:id="@+id/musicProgressBar"
                 style="?android:attr/progressBarStyleHorizontal"
@@ -45,9 +48,8 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="12dp"
-                android:layout_marginStart="5dp"
                 android:layout_marginEnd="8dp"
-                android:text="0.00"
+                android:text="00.00"
                 android:textStyle="bold"/>
         </LinearLayout>
 

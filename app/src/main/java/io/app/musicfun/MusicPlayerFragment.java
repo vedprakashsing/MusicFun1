@@ -265,7 +265,7 @@ public class MusicPlayerFragment extends Fragment {
             @Override
             public void run() {
 
-                if ( mediaPlayer.isPlaying()) {
+                if (mediaPlayer!=null || mediaPlayer.isPlaying()) {
                     binding.updateTimeOfSong.post(new Runnable() {
                         @Override
                         public void run() {
@@ -275,14 +275,15 @@ public class MusicPlayerFragment extends Fragment {
                                 binding.musicProgressBar.setMin(0);
                             }
                             binding.musicProgressBar.setMax(mediaPlayer.getDuration());
-                            binding.updateTimeOfSong.setText(String.format("%d.%d min", TimeUnit.MILLISECONDS.toMinutes(currentDuration),TimeUnit.MILLISECONDS.toSeconds(currentDuration)-TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(currentDuration))));
+                            binding.updateTimeOfSong.setText(String.format("%2d.%2d", TimeUnit.MILLISECONDS.toMinutes(currentDuration),TimeUnit.MILLISECONDS.toSeconds(currentDuration)-TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(currentDuration))));
                             binding.musicProgressBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
                                 @Override
                                 public void onProgressChanged(SeekBar seekBar, int i, boolean b) {
                                          if(b){
                                              mediaPlayer.seekTo(i);
+                                             Log.d(TAG, "onProgressChanged: Change");
                                          }
-                                    //binding.musicProgressBar.setProgress(i);
+
                                 }
 
                                 @Override
@@ -300,11 +301,13 @@ public class MusicPlayerFragment extends Fragment {
                         }
                     });
                 } else {
+                    
                     timer.cancel();
                     timer.purge();
                 }
             }
 
         }, 0, 1000);
+        
     }
 }
