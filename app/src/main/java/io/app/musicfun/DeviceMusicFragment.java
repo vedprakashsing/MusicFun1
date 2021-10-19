@@ -4,11 +4,13 @@ import static android.content.ContentValues.TAG;
 
 import android.content.ContentUris;
 import android.database.Cursor;
+import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 
 import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.LinearLayoutManager;
 
 import android.provider.MediaStore;
 import android.util.Log;
@@ -19,6 +21,7 @@ import android.view.ViewGroup;
 import java.util.ArrayList;
 import java.util.List;
 
+import io.app.musicfun.Interface.AdapterToFragment;
 import io.app.musicfun.ListAdapter.SongListAdapter;
 import io.app.musicfun.Models.Songs;
 import io.app.musicfun.databinding.FragmentDeviceMusicFragementBinding;
@@ -54,11 +57,11 @@ private FragmentDeviceMusicFragementBinding binding;
         String sortOrder=MediaStore.Audio.Media.DISPLAY_NAME+" ASC";
 
         Uri collection;
-        //if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-           // collection = MediaStore.Audio.Media.getContentUri(MediaStore.VOLUME_EXTERNAL);
-        //} else {
-            collection = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI;
-        //}
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            collection = MediaStore.Audio.Media.getContentUri(MediaStore.VOLUME_EXTERNAL);
+        } else {
+            collection = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI;new LinearLayoutManager(this.getContext());
+        }
 
        try( Cursor cursor = this.getContext().getContentResolver().query(
                 collection,
@@ -92,7 +95,19 @@ private FragmentDeviceMusicFragementBinding binding;
                songs.add(song);
            }
            cursor.close();
-           SongListAdapter songListAdapter=new SongListAdapter(this.getContext(),songs);
+
+           AdapterToFragment adapterToFragment=new AdapterToFragment() {
+               @Override
+               public void pause( MediaPlayer mediaPlayer) {
+                   mediaPlayer.pause();
+               }
+               @Override
+               public void start(MediaPlayer mediaPlayer){
+                   mediaPlayer.start();
+               }
+           };
+           SongListAdapter songListAdapter=new SongListAdapter(this.getContext(),songs,adapterToFragment);
+           binding.songsRecyclerView.setLayoutManager(new LinearLayoutManager(this.getContext()));
            binding.songsRecyclerView.setAdapter(songListAdapter);
 
        }
