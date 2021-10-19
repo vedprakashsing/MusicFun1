@@ -33,7 +33,7 @@
             android:layout_height="30dp"
             android:src="@drawable/pause"
             android:layout_margin="8dp"/>
-            <ProgressBar
+            <SeekBar
                 android:id="@+id/musicProgressBar"
                 style="?android:attr/progressBarStyleHorizontal"
                 android:layout_width="wrap_content"

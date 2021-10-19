@@ -21,6 +21,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.SeekBar;
 import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
@@ -69,7 +70,7 @@ public class MusicPlayerFragment extends Fragment {
 
                 if (grabAudioFocus()) {
                     Log.d(TAG, "onAudioFocusChange: " + grabAudioFocus());
-                    mediaPlayer.reset();
+                    mediaPlayer.reset();//Causing no effect when create first time.
                     mediaPlayer.setAudioAttributes(
                             new AudioAttributes.Builder()
                                     .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
@@ -107,18 +108,21 @@ public class MusicPlayerFragment extends Fragment {
                             .load(R.drawable.play)
                             .centerCrop()
                             .into(binding.musicPlayerPlayButton);
+                             releaseAudioFocus();
                    /* while(mediaPlayer.getCurrentPosition()!=totalDuration){
 
                         binding.updateTimeOfSong.setText("Please");
                     }*/
                 } else {
-                    mediaPlayer.start();
-                    Glide
-                            .with(mContext)
-                            .load(R.drawable.pause)
-                            .centerCrop()
-                            .into(binding.musicPlayerPlayButton);
-                             createTimerSongs();
+                    if(grabAudioFocus()) {
+                        mediaPlayer.start();
+                        Glide
+                                .with(mContext)
+                                .load(R.drawable.pause)
+                                .centerCrop()
+                                .into(binding.musicPlayerPlayButton);
+                        createTimerSongs();
+                    }
                    /* while(mediaPlayer.getCurrentPosition()!=totalDuration){
 
                         binding.updateTimeOfSong.setText("Check");
@@ -153,22 +157,32 @@ public class MusicPlayerFragment extends Fragment {
             public void onAudioFocusChange(int focusChange) {
                 switch (focusChange) {
                     case AudioManager.AUDIOFOCUS_GAIN:
-                        // resume playback in case of transient loss
-                        try {
+                        // resume playback in case of transient loss'
+                   // if(grabAudioFocus()){
+                        //try {
                             Log.d(TAG, "onAudioFocusChange: AUDIOFOCUS_GAIN");
-                            mediaPlayer.setDataSource(mContext, songUri);
-                            mediaPlayer.prepare();
+                            //mediaPlayer.setDataSource(mContext, songUri);
+                          //  mediaPlayer.prepare();
+
                             mediaPlayer.start();
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
+
+                       // } catch (IOException e) {
+                          //  e.printStackTrace();
+                        //}
+                    //}
                         break;
 
                     case AudioManager.AUDIOFOCUS_LOSS:
                         // Lost focus for an unbounded amount of time: stop playback and
                         // release media player
                         Log.d(TAG, "onAudioFocusChange: AUDIOFOCUS_LOSS");
-                        mediaPlayer.stop();
+                        mediaPlayer.pause();
+
+                        Glide
+                                .with(mContext)
+                                .load(R.drawable.play)
+                                .centerCrop()
+                                .into(binding.musicPlayerPlayButton);
                         releaseAudioFocus();
                         break;
 
@@ -188,6 +202,7 @@ public class MusicPlayerFragment extends Fragment {
 
                     case AudioManager.AUDIOFOCUS_GAIN_TRANSIENT:
                         // resume playback after short playback stop
+                        Log.d(TAG, "onAudioFocusChange: GAIN_TRANSIENT");
                         try {
                             mediaPlayer.setDataSource(mContext, songUri);
                             mediaPlayer.prepare();
@@ -261,6 +276,26 @@ public class MusicPlayerFragment extends Fragment {
                             }
                             binding.musicProgressBar.setMax(mediaPlayer.getDuration());
                             binding.updateTimeOfSong.setText(String.format("%d.%d min", TimeUnit.MILLISECONDS.toMinutes(currentDuration),TimeUnit.MILLISECONDS.toSeconds(currentDuration)-TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(currentDuration))));
+                            binding.musicProgressBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+                                @Override
+                                public void onProgressChanged(SeekBar seekBar, int i, boolean b) {
+                                         if(b){
+                                             mediaPlayer.seekTo(i);
+                                         }
+                                    //binding.musicProgressBar.setProgress(i);
+                                }
+
+                                @Override
+                                public void onStartTrackingTouch(SeekBar seekBar) {
+
+                                }
+
+                                @Override
+                                public void onStopTrackingTouch(SeekBar seekBar) {
+
+
+                                }
+                            });
                             binding.musicProgressBar.setProgress(mediaPlayer.getCurrentPosition());
                         }
                     });
