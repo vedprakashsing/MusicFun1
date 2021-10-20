@@ -1,11 +1,17 @@
 package io.app.musicfun;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 
+import android.Manifest;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.MenuItem;
@@ -24,12 +30,15 @@ import io.app.musicfun.databinding.ActivityMainBinding;
 
 public class MainActivity extends AppCompatActivity {
 
+    private static final int MY_PERMISSIONS_REQUEST_READ_EXTERNAL_STORAGE = 123;
     private ActivityMainBinding binding;
     private static final String CLIENT_ID = "64efafd977cc4c18938e487609f62ea2";
     private static final String REDIRECT_URI = "coolcheck://callback";
-    private static final int REQUEST_CODE = 1337;
+    private static final int REQUEST_CODE = 1;
     private static final String SCOPES = "user-read-recently-played,user-library-modify,user-read-email,user-read-private";
     public SpotifyAppRemote mSpotifyAppRemote;
+    private boolean checkPermission;
+    int nexItem;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -115,6 +124,7 @@ public class MainActivity extends AppCompatActivity {
                     public boolean onNavigationItemSelected(@NonNull MenuItem item) {
                         final int previousItem = binding.bottomToolbar.getSelectedItemId();
                         final int nextItem = item.getItemId();
+                        nexItem=nextItem;
                         if (previousItem != nextItem) {
 
                             if (nextItem == R.id.bottom_bar_home) {
@@ -127,13 +137,17 @@ public class MainActivity extends AppCompatActivity {
                                 transaction.commit();
                                 return true;
                             } else if (nextItem == R.id.bottom_bar_library) {
-                                Toast.makeText(MainActivity.this,"Library",Toast.LENGTH_SHORT).show();
-                                FragmentManager fragmentManager = getSupportFragmentManager();
-                                FragmentTransaction transaction = fragmentManager.beginTransaction();
-                                transaction.addToBackStack("true");
-                                transaction.replace(R.id.nav_host_fragment_container, DeviceMusicFragment.class, null);
-                                // Commit the transaction
-                                transaction.commit();
+                                if (checkPermission) {
+                                    Toast.makeText(MainActivity.this, "Library", Toast.LENGTH_SHORT).show();
+                                    FragmentManager fragmentManager = getSupportFragmentManager();
+                                    FragmentTransaction transaction = fragmentManager.beginTransaction();
+                                    //transaction.addToBackStack("true");
+                                    transaction.replace(R.id.nav_host_fragment_container, DeviceMusicFragment.class, null);
+                                    // Commit the transaction
+                                    transaction.commit();
+                                }else{
+                                    runTimePermission();
+                                }
                                 return true;
                             } else {
                                 Toast.makeText(MainActivity.this, "Setting", Toast.LENGTH_SHORT).show();
@@ -142,6 +156,20 @@ public class MainActivity extends AppCompatActivity {
 
                         } else {
 
+                                  if(nextItem==R.id.bottom_bar_library){
+                                      if (checkPermission) {
+                                          Toast.makeText(MainActivity.this, "Library", Toast.LENGTH_SHORT).show();
+                                          FragmentManager fragmentManager = getSupportFragmentManager();
+                                          FragmentTransaction transaction = fragmentManager.beginTransaction();
+                                          //transaction.addToBackStack("true");
+                                          transaction.replace(R.id.nav_host_fragment_container, DeviceMusicFragment.class, null);
+                                          // Commit the transaction
+                                          transaction.commit();
+                                      }else{
+                                          runTimePermission();
+                                      }
+
+                                  }
                         }
                         return true;
                     }
@@ -156,4 +184,64 @@ public class MainActivity extends AppCompatActivity {
         SpotifyAppRemote.disconnect(mSpotifyAppRemote);
     }
 
+    @Override
+    protected void onStart() {
+        super.onStart();
+        Log.d("check", "onStart: Started");
+        runTimePermission();
+
+    }
+
+
+    public void runTimePermission() {
+        if (ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.READ_EXTERNAL_STORAGE) ==
+                PackageManager.PERMISSION_GRANTED) {
+            // You can use the API that requires the permission.
+            // Toast.makeText(MainActivity.this,"Thanks",Toast.LENGTH_SHORT).show();
+            checkPermission = true;
+        } else {
+            // You can directly ask for the permission.
+            ActivityCompat.requestPermissions(MainActivity.this,
+                    new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},
+                    REQUEST_CODE);
+        }
+    }
+
+
+    public void quitApp() {
+        MainActivity.this.finish();
+        //MainActivity.this.finishAndRemoveTask();(This is use for also release from front)
+        System.exit(1);
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String[] permissions,
+                                           int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        switch (requestCode) {
+            case REQUEST_CODE:
+                // If request is cancelled, the result arrays are empty.
+                if (grantResults.length > 0 &&
+                        grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    checkPermission = true;
+                   if(nexItem==R.id.bottom_bar_library){
+                       Toast.makeText(MainActivity.this, "Library", Toast.LENGTH_SHORT).show();
+                       FragmentManager fragmentManager = getSupportFragmentManager();
+                       FragmentTransaction transaction = fragmentManager.beginTransaction();
+                       //transaction.addToBackStack("true");
+                       transaction.replace(R.id.nav_host_fragment_container, DeviceMusicFragment.class, null);
+                       // Commit the transaction
+                       transaction.commit();
+                   }
+
+                } else {
+
+                    checkPermission = false;
+                }
+                return;
+        }
+        // Other 'case' lines to check for other
+        // permissions this app might request.
+    }
 }
+
