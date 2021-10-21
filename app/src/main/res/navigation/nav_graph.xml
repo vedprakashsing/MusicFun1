@@ -9,5 +9,28 @@
         android:id="@+id/homeFragment"
         android:name="io.app.musicfun.HomeFragment"
         android:label="fragment_home"
-        tools:layout="@layout/fragment_home" />
+        tools:layout="@layout/fragment_home" >
+        <action
+            android:id="@+id/action_homeFragment_to_deviceMusicFragment2"
+            app:destination="@id/deviceMusicFragment2" />
+    </fragment>
+    <fragment
+        android:id="@+id/deviceMusicFragment2"
+        android:name="io.app.musicfun.DeviceMusicFragment"
+        android:label="fragment_device_music_fragement"
+        tools:layout="@layout/fragment_device_music_fragement" >
+        <action
+            android:id="@+id/action_deviceMusicFragment2_to_settingFragment"
+            app:destination="@id/settingFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/musicPlayerFragment2"
+        android:name="io.app.musicfun.MusicPlayerFragment"
+        android:label="fragment_music_player"
+        tools:layout="@layout/fragment_music_player" />
+    <fragment
+        android:id="@+id/settingFragment"
+        android:name="io.app.musicfun.SettingFragment"
+        android:label="fragment_setting"
+        tools:layout="@layout/fragment_setting" />
 </navigation>

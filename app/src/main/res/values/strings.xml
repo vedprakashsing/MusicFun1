@@ -11,4 +11,6 @@
     <string name="duration">Duration:-</string>
     <string name="artist">Artist:-</string>
     <string name="songName">Name:-</string>
+    <string name="divider">|</string>
+    <string name="musicPlayerFragment">musicPlayerFragment</string>
 </resources>

@@ -6,6 +6,8 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentActivity;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 
@@ -39,6 +41,7 @@ public class MainActivity extends AppCompatActivity {
     public SpotifyAppRemote mSpotifyAppRemote;
     private boolean checkPermission;
     int nexItem;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -124,14 +127,14 @@ public class MainActivity extends AppCompatActivity {
                     public boolean onNavigationItemSelected(@NonNull MenuItem item) {
                         final int previousItem = binding.bottomToolbar.getSelectedItemId();
                         final int nextItem = item.getItemId();
-                        nexItem=nextItem;
+                        nexItem = nextItem;
                         if (previousItem != nextItem) {
 
                             if (nextItem == R.id.bottom_bar_home) {
                                 Toast.makeText(MainActivity.this, "Home", Toast.LENGTH_SHORT).show();
                                 FragmentManager fragmentManager = getSupportFragmentManager();
                                 FragmentTransaction transaction = fragmentManager.beginTransaction();
-                                transaction.addToBackStack("true");
+                                //transaction.addToBackStack("deviceMusicFragment");
                                 transaction.replace(R.id.nav_host_fragment_container, HomeFragment.class, null);
                                 // Commit the transaction
                                 transaction.commit();
@@ -141,35 +144,41 @@ public class MainActivity extends AppCompatActivity {
                                     Toast.makeText(MainActivity.this, "Library", Toast.LENGTH_SHORT).show();
                                     FragmentManager fragmentManager = getSupportFragmentManager();
                                     FragmentTransaction transaction = fragmentManager.beginTransaction();
-                                    //transaction.addToBackStack("true");
+                                    //transaction.setReorderingAllowed(true);
+                                    //transaction.addToBackStack("deviceMusicFragment");
                                     transaction.replace(R.id.nav_host_fragment_container, DeviceMusicFragment.class, null);
                                     // Commit the transaction
                                     transaction.commit();
-                                }else{
+                                } else {
                                     runTimePermission();
                                 }
                                 return true;
                             } else {
+                                if(getSupportFragmentManager().getBackStackEntryCount()>0){
+                                    getSupportFragmentManager().popBackStack(getSupportFragmentManager().getBackStackEntryAt(0).getId(),FragmentManager.POP_BACK_STACK_INCLUSIVE);
+                                    getSupportFragmentManager().beginTransaction().replace(R.id.nav_host_fragment_container,SettingFragment.class,null).commit();
+                                }else{
+                                    getSupportFragmentManager().beginTransaction().replace(R.id.nav_host_fragment_container,SettingFragment.class,null).commit();
+                                }
+
                                 Toast.makeText(MainActivity.this, "Setting", Toast.LENGTH_SHORT).show();
                                 return true;
                             }
 
                         } else {
 
-                                  if(nextItem==R.id.bottom_bar_library){
-                                      if (checkPermission) {
-                                          Toast.makeText(MainActivity.this, "Library", Toast.LENGTH_SHORT).show();
-                                          FragmentManager fragmentManager = getSupportFragmentManager();
-                                          FragmentTransaction transaction = fragmentManager.beginTransaction();
-                                          //transaction.addToBackStack("true");
-                                          transaction.replace(R.id.nav_host_fragment_container, DeviceMusicFragment.class, null);
-                                          // Commit the transaction
-                                          transaction.commit();
-                                      }else{
-                                          runTimePermission();
-                                      }
+                            if (nextItem == R.id.bottom_bar_library) {
+                                Log.d("check", "onNavigationItemSelected: "+checkPreOfMediaPlayerFrag());
+                                if (checkPermission) {
+                                    if(checkPreOfMediaPlayerFrag()) {
+                                        getSupportFragmentManager().popBackStack();
+                                    }
 
-                                  }
+                                }else {
+                                    runTimePermission();
+                                }
+
+                            }
                         }
                         return true;
                     }
@@ -224,15 +233,16 @@ public class MainActivity extends AppCompatActivity {
                 if (grantResults.length > 0 &&
                         grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                     checkPermission = true;
-                   if(nexItem==R.id.bottom_bar_library){
-                       Toast.makeText(MainActivity.this, "Library", Toast.LENGTH_SHORT).show();
-                       FragmentManager fragmentManager = getSupportFragmentManager();
-                       FragmentTransaction transaction = fragmentManager.beginTransaction();
-                       //transaction.addToBackStack("true");
-                       transaction.replace(R.id.nav_host_fragment_container, DeviceMusicFragment.class, null);
-                       // Commit the transaction
-                       transaction.commit();
-                   }
+                    if (nexItem == R.id.bottom_bar_library) {
+                        Toast.makeText(MainActivity.this, "Library", Toast.LENGTH_SHORT).show();
+                        FragmentManager fragmentManager = getSupportFragmentManager();
+                        FragmentTransaction transaction = fragmentManager.beginTransaction();
+                        //transaction.setReorderingAllowed(true);
+                        transaction.addToBackStack("true");
+                        transaction.replace(R.id.nav_host_fragment_container, DeviceMusicFragment.class, null);
+                        // Commit the transaction
+                        transaction.commit();
+                    }
 
                 } else {
 
@@ -243,5 +253,21 @@ public class MainActivity extends AppCompatActivity {
         // Other 'case' lines to check for other
         // permissions this app might request.
     }
-}
 
+
+     public boolean checkPreOfMediaPlayerFrag(){
+        try {
+            MusicPlayerFragment myFragment = (MusicPlayerFragment) getSupportFragmentManager().findFragmentById(R.id.nav_host_fragment_container);
+            if (myFragment != null && myFragment.isVisible()) {
+                //getSupportFragmentManager().popBackStack();
+                return true;
+            } else {
+                return false;
+            }
+        }catch (Exception e){
+            return false;
+         }
+     }
+
+
+}

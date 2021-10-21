@@ -2,6 +2,7 @@ package io.app.musicfun;
 
 import static android.content.ContentValues.TAG;
 
+import android.app.Activity;
 import android.content.Context;
 import android.media.AudioAttributes;
 import android.media.AudioFocusRequest;
@@ -12,6 +13,7 @@ import android.os.Build;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
+import androidx.core.app.ActivityCompat;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentActivity;
 import androidx.fragment.app.FragmentResultListener;
@@ -58,7 +60,7 @@ public class MusicPlayerFragment extends Fragment {
         // Inflate the layout for this fragment
         binding = FragmentMusicPlayerBinding.inflate(inflater, container, false);
         View view = binding.getRoot();
-        mContext = view.getContext();
+        mContext = this.getContext();
         getParentFragmentManager().setFragmentResultListener("bundleSongUriStringKey", this, new FragmentResultListener() {
             @Override
             public void onFragmentResult(@NonNull String requestKey, @NonNull Bundle bundle) {
@@ -69,6 +71,11 @@ public class MusicPlayerFragment extends Fragment {
                 // Do something with the result
 
                 if (grabAudioFocus()) {
+                    Glide
+                            .with(mContext)
+                            .load(R.drawable.pause)
+                            .centerCrop()
+                            .into(binding.musicPlayerPlayButton);
                     Log.d(TAG, "onAudioFocusChange: " + grabAudioFocus());
                     mediaPlayer.reset();//Causing no effect when create first time.
                     mediaPlayer.setAudioAttributes(
@@ -177,12 +184,14 @@ public class MusicPlayerFragment extends Fragment {
                         // release media player
                         Log.d(TAG, "onAudioFocusChange: AUDIOFOCUS_LOSS");
                         mediaPlayer.pause();
-
-                        Glide
-                                .with(mContext)
-                                .load(R.drawable.play)
-                                .centerCrop()
-                                .into(binding.musicPlayerPlayButton);
+                        final Activity activity=(Activity) mContext;
+                        if(!activity.isDestroyed()){
+                            Glide
+                                    .with(mContext)
+                                    .load(R.drawable.play)
+                                    .centerCrop()
+                                    .into(binding.musicPlayerPlayButton);
+                        }
                         releaseAudioFocus();
                         break;
 
@@ -215,6 +224,8 @@ public class MusicPlayerFragment extends Fragment {
                         break;
                     case AudioManager.AUDIOFOCUS_GAIN_TRANSIENT_MAY_DUCK:
                         break;
+                    default:
+                        throw new IllegalStateException("Unexpected value: " + focusChange);
                 }
             }
         };
@@ -269,18 +280,20 @@ public class MusicPlayerFragment extends Fragment {
                     binding.updateTimeOfSong.post(new Runnable() {
                         @Override
                         public void run() {
-                            int currentDuration=mediaPlayer.getCurrentPosition();
+                            final int[] currentDuration = {mediaPlayer.getCurrentPosition()};
                             //String.format("%d min", TimeUnit.MILLISECONDS.toMinutes(currentDuration));
                             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                                 binding.musicProgressBar.setMin(0);
                             }
                             binding.musicProgressBar.setMax(mediaPlayer.getDuration());
-                            binding.updateTimeOfSong.setText(String.format("%2d.%2d", TimeUnit.MILLISECONDS.toMinutes(currentDuration),TimeUnit.MILLISECONDS.toSeconds(currentDuration)-TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(currentDuration))));
+                            binding.updateTimeOfSong.setText(timeToMinutes(currentDuration[0])+"."+timeToSeconds(currentDuration[0]));
                             binding.musicProgressBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
                                 @Override
                                 public void onProgressChanged(SeekBar seekBar, int i, boolean b) {
                                          if(b){
+                                             currentDuration[0] =i;
                                              mediaPlayer.seekTo(i);
+                                             binding.updateTimeOfSong.setText(timeToMinutes(currentDuration[0])+"."+timeToSeconds(currentDuration[0]));
                                              Log.d(TAG, "onProgressChanged: Change");
                                          }
 
@@ -288,13 +301,14 @@ public class MusicPlayerFragment extends Fragment {
 
                                 @Override
                                 public void onStartTrackingTouch(SeekBar seekBar) {
-
+                                   binding.musicProgressBar.computeScroll();
                                 }
 
                                 @Override
                                 public void onStopTrackingTouch(SeekBar seekBar) {
 
-
+                                   // mediaPlayer.seekTo(seekBar.getProgress());
+                                    //binding.updateTimeOfSong.setText(String.format("%2d.%2d", TimeUnit.MILLISECONDS.toMinutes(currentDuration),TimeUnit.MILLISECONDS.toSeconds(currentDuration)-TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(currentDuration))));
                                 }
                             });
                             binding.musicProgressBar.setProgress(mediaPlayer.getCurrentPosition());
@@ -310,4 +324,28 @@ public class MusicPlayerFragment extends Fragment {
         }, 0, 1000);
         
     }
+
+    public String timeToMinutes(int duration){
+        String minuteString="";
+        duration=(int)TimeUnit.MILLISECONDS.toMinutes(duration);
+        if(duration<10){
+            minuteString="0"+duration;
+            return minuteString;
+        }else{
+            minuteString=duration+"";
+            return minuteString;
+        }
+    }
+    public String timeToSeconds(int duration){
+        String secondString="";
+        duration=(int)(TimeUnit.MILLISECONDS.toSeconds(duration)-TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(duration)));
+        if(duration<10){
+            secondString="0"+duration;
+            return secondString;
+        }else{
+            secondString=duration+"";
+            return secondString;
+        }
+    }
+
 }
