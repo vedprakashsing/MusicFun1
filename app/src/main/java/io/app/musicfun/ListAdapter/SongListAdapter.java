@@ -10,6 +10,7 @@ import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Parcelable;
 import android.os.PowerManager;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -25,13 +26,9 @@ import androidx.fragment.app.FragmentActivity;
 import androidx.fragment.app.FragmentManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import java.io.IOException;
-import java.lang.reflect.Array;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-import io.app.musicfun.DeviceMusicFragment;
 import io.app.musicfun.Interface.AdapterToFragment;
 import io.app.musicfun.Models.Songs;
 import io.app.musicfun.MusicPlayerFragment;
@@ -80,11 +77,13 @@ public class SongListAdapter extends RecyclerView.Adapter<SongListAdapter.ViewHo
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         Songs songs=songsList.get(position);
+        int songPosition=position;
+        int totalSongs=getItemCount();
         String name= songs.getName();
         String title= songs.getTitle();
         int duration=  songs.getDuration();
         String artist= songs.getArtist();
-        Log.d(TAG, "DeviceFragment" + name+","+","+duration+","+","+artist+","+title);
+        Log.d(TAG, "position"+songPosition);
         float reConvertDuration=(float) duration;
         reConvertDuration=reConvertDuration/60000;
 
@@ -97,9 +96,11 @@ public class SongListAdapter extends RecyclerView.Adapter<SongListAdapter.ViewHo
             @Override
             public void onClick(View view){
                 Bundle result=new Bundle();
+                Log.d(TAG, "getItemCount:-"+getItemCount());
                 result.putString("songUriStringKey",songs.getSongUri().toString());
-                DeviceMusicFragment deviceMusicFragment=new DeviceMusicFragment();
-                ((FragmentActivity) view.getContext()).getSupportFragmentManager().setFragmentResult("bundleSongUriStringKey",result);
+                result.putInt("songPositionKey",songPosition);
+                result.putInt("totalSongKey",totalSongs);
+                ((FragmentActivity) view.getContext()).getSupportFragmentManager().setFragmentResult("bundleSongKey",result);
                 ((FragmentActivity) view.getContext()).getSupportFragmentManager().beginTransaction().addToBackStack("deviceMusicFragment").replace(R.id.nav_host_fragment_container, MusicPlayerFragment.class,null).commit();
 
             }

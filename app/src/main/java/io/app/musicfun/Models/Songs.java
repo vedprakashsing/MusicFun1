@@ -2,6 +2,7 @@ package io.app.musicfun.Models;
 
 import android.net.Uri;
 
+
 public class Songs {
     private Uri songUri;
     private String name;
@@ -10,6 +11,7 @@ public class Songs {
     private long id;
     private int duration;
     private int size;
+
 
     public Songs(Uri songUri, String name, String artist, String title, long id, int duration, int size) {
         this.songUri = songUri;

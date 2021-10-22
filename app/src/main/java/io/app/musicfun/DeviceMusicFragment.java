@@ -30,11 +30,11 @@ import android.widget.Toast;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-
+import androidx.lifecycle.ViewModelProvider;
 import io.app.musicfun.Interface.AdapterToFragment;
 import io.app.musicfun.ListAdapter.SongListAdapter;
 import io.app.musicfun.Models.Songs;
+import io.app.musicfun.ViewModel.SongListViewModel;
 import io.app.musicfun.databinding.FragmentDeviceMusicFragementBinding;
 
 
@@ -42,6 +42,7 @@ public class DeviceMusicFragment extends Fragment {
 
     private static final int MY_PERMISSIONS_REQUEST_READ_EXTERNAL_STORAGE =123;
     private FragmentDeviceMusicFragementBinding binding;
+    private SongListViewModel songListViewModel;
 
     public DeviceMusicFragment() {
         // Required empty public constructor
@@ -55,8 +56,8 @@ public class DeviceMusicFragment extends Fragment {
         List<File> song = new ArrayList<>();
         binding = FragmentDeviceMusicFragementBinding.inflate(inflater, container, false);
         View view = binding.getRoot();
-       // getPermission();
         List<Songs> songs = new ArrayList<>();
+        songListViewModel=new ViewModelProvider(getActivity()).get(SongListViewModel.class);
         AdapterToFragment adapterToFragment=new AdapterToFragment() {
             @Override
             public void pause( MediaPlayer mediaPlayer) {
@@ -139,6 +140,7 @@ public class DeviceMusicFragment extends Fragment {
             }
             cursor.close();
         }
+        songListViewModel.setSongsList(songs);
         return songs;
     }
 

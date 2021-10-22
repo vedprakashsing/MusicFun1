@@ -10,6 +10,8 @@ import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentActivity;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
+import androidx.lifecycle.ViewModel;
+import androidx.lifecycle.ViewModelProvider;
 
 import android.Manifest;
 import android.content.Intent;
@@ -28,6 +30,7 @@ import com.spotify.protocol.types.Track;
 import com.spotify.sdk.android.authentication.AuthenticationClient;
 import com.spotify.sdk.android.authentication.AuthenticationResponse;
 
+import io.app.musicfun.ViewModel.SongListViewModel;
 import io.app.musicfun.databinding.ActivityMainBinding;
 
 public class MainActivity extends AppCompatActivity {
@@ -42,7 +45,6 @@ public class MainActivity extends AppCompatActivity {
     private boolean checkPermission;
     int nexItem;
 
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -50,6 +52,7 @@ public class MainActivity extends AppCompatActivity {
         View view = binding.getRoot();
         setContentView(view);
         bottomNavigation(binding.bottomToolbar);
+        final SongListViewModel songListViewModel = new ViewModelProvider(this).get(SongListViewModel.class);
     }
 
 
@@ -267,6 +270,12 @@ public class MainActivity extends AppCompatActivity {
         }catch (Exception e){
             return false;
          }
+     }
+
+     @Override
+    public void onDestroy(){
+        super.onDestroy();
+        Toast.makeText(MainActivity.this,"ActivityGetDestroed",Toast.LENGTH_SHORT).show();
      }
 
 

@@ -17,7 +17,9 @@ import androidx.core.app.ActivityCompat;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentActivity;
 import androidx.fragment.app.FragmentResultListener;
+import androidx.lifecycle.ViewModelProvider;
 
+import android.os.Parcelable;
 import android.os.PowerManager;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -29,11 +31,15 @@ import android.widget.Toast;
 import com.bumptech.glide.Glide;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.TimeUnit;
 
 import io.app.musicfun.ListAdapter.SongListAdapter;
+import io.app.musicfun.Models.Songs;
+import io.app.musicfun.ViewModel.SongListViewModel;
 import io.app.musicfun.databinding.FragmentHomeBinding;
 import io.app.musicfun.databinding.FragmentMusicPlayerBinding;
 
@@ -48,6 +54,11 @@ public class MusicPlayerFragment extends Fragment {
     private AudioManager.OnAudioFocusChangeListener _audioFocusChangeListener;
     private int totalDuration;
     private Timer timer;
+    private int position;
+    private int totalSong;
+    private SongListViewModel songListViewModel;
+    private List<Songs> songsList;
+
 
     public MusicPlayerFragment() {
         // Required empty public constructor
@@ -61,53 +72,48 @@ public class MusicPlayerFragment extends Fragment {
         binding = FragmentMusicPlayerBinding.inflate(inflater, container, false);
         View view = binding.getRoot();
         mContext = this.getContext();
-        getParentFragmentManager().setFragmentResultListener("bundleSongUriStringKey", this, new FragmentResultListener() {
+        songListViewModel = new ViewModelProvider(getActivity()).get(SongListViewModel.class);
+
+        //Getting Data From SongListAdapter
+        getParentFragmentManager().setFragmentResultListener("bundleSongKey", this, new FragmentResultListener() {
             @Override
             public void onFragmentResult(@NonNull String requestKey, @NonNull Bundle bundle) {
                 // We use a String here, but any type that can be put in a Bundle is supported
                 result = bundle.getString("songUriStringKey");
+                position = bundle.getInt("songPositionKey");
+                totalSong = bundle.getInt("totalSongKey");
+                songsList = songListViewModel.getSongsList();
+                Log.d(TAG, "songPosition:-" + position + totalSong + songsList.size());
                 songUri = Uri.parse(result);
-
-                // Do something with the result
-
-                if (grabAudioFocus()) {
-                    Glide
-                            .with(mContext)
-                            .load(R.drawable.pause)
-                            .centerCrop()
-                            .into(binding.musicPlayerPlayButton);
-                    Log.d(TAG, "onAudioFocusChange: " + grabAudioFocus());
-                    mediaPlayer.reset();//Causing no effect when create first time.
-                    mediaPlayer.setAudioAttributes(
-                            new AudioAttributes.Builder()
-                                    .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
-                                    .setUsage(AudioAttributes.USAGE_MEDIA)
-                                    .build()
-                    );
-                    try {
-                        mediaPlayer.setDataSource(view.getContext(), songUri);
-                        mediaPlayer.setWakeMode(view.getContext(), PowerManager.PARTIAL_WAKE_LOCK);
-                        mediaPlayer.prepare();
-                        Log.d(TAG, "onClick: Start");
-                        mediaPlayer.start();
-                       // Log.d(TAG, "onFragmentResult: "+mediaPlayer.getDuration()+mediaPlayer.getCurrentPosition());
-                        createTimerSongs();
-
-
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                } else {
-                    Toast.makeText(view.getContext(), "Check", Toast.LENGTH_SHORT).show();
-                }
+                setMediaPlayer();
             }
         });
+        //END
 
+        //Setting onCLickListener to play prev song
+        binding.previousPlayButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                playPrevSong();
+            }
+        });
+        //END
+
+        //Setting onClickListener to play net song
+        binding.nextPlayButton.setOnClickListener(new View.OnClickListener(){
+            @Override
+            public void onClick(View view){
+                playNextSong();
+            }
+        });
+        //END
+
+        //Setting onClickListener to play and pause
         binding.musicPlayerPlayButton.setOnClickListener(new View.OnClickListener() {
 
             @Override
             public void onClick(View view) {
-              //  Toast.makeText(view.getContext(), result, Toast.LENGTH_SHORT).show();
+                //  Toast.makeText(view.getContext(), result, Toast.LENGTH_SHORT).show();
                 if (mediaPlayer.isPlaying()) {
                     mediaPlayer.pause();
                     Glide
@@ -115,13 +121,9 @@ public class MusicPlayerFragment extends Fragment {
                             .load(R.drawable.play)
                             .centerCrop()
                             .into(binding.musicPlayerPlayButton);
-                             releaseAudioFocus();
-                   /* while(mediaPlayer.getCurrentPosition()!=totalDuration){
-
-                        binding.updateTimeOfSong.setText("Please");
-                    }*/
+                    releaseAudioFocus();
                 } else {
-                    if(grabAudioFocus()) {
+                    if (grabAudioFocus()) {
                         mediaPlayer.start();
                         Glide
                                 .with(mContext)
@@ -130,16 +132,13 @@ public class MusicPlayerFragment extends Fragment {
                                 .into(binding.musicPlayerPlayButton);
                         createTimerSongs();
                     }
-                   /* while(mediaPlayer.getCurrentPosition()!=totalDuration){
-
-                        binding.updateTimeOfSong.setText("Check");
-                    }*/
                 }
 
             }
         });
+        //END
 
-
+        //Setting onCompletionListener to check whether the song get completed or not
         mediaPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
             @Override
             public void onCompletion(MediaPlayer mediaPlayer) {
@@ -148,7 +147,7 @@ public class MusicPlayerFragment extends Fragment {
                 try {
                     mediaPlayer.setDataSource(mContext, songUri);
                     mediaPlayer.prepare();
-                }catch(IOException e){
+                } catch (IOException e) {
                     e.printStackTrace();
                 }
                 Glide
@@ -158,25 +157,15 @@ public class MusicPlayerFragment extends Fragment {
                         .into(binding.musicPlayerPlayButton);
             }
         });
+        //END
 
         //_audioFocusChangeListener initialize here
         _audioFocusChangeListener = new AudioManager.OnAudioFocusChangeListener() {
             public void onAudioFocusChange(int focusChange) {
                 switch (focusChange) {
                     case AudioManager.AUDIOFOCUS_GAIN:
-                        // resume playback in case of transient loss'
-                   // if(grabAudioFocus()){
-                        //try {
-                            Log.d(TAG, "onAudioFocusChange: AUDIOFOCUS_GAIN");
-                            //mediaPlayer.setDataSource(mContext, songUri);
-                          //  mediaPlayer.prepare();
-
-                            mediaPlayer.start();
-
-                       // } catch (IOException e) {
-                          //  e.printStackTrace();
-                        //}
-                    //}
+                        Log.d(TAG, "onAudioFocusChange: AUDIOFOCUS_GAIN");
+                        mediaPlayer.start();
                         break;
 
                     case AudioManager.AUDIOFOCUS_LOSS:
@@ -184,8 +173,8 @@ public class MusicPlayerFragment extends Fragment {
                         // release media player
                         Log.d(TAG, "onAudioFocusChange: AUDIOFOCUS_LOSS");
                         mediaPlayer.pause();
-                        final Activity activity=(Activity) mContext;
-                        if(!activity.isDestroyed()){
+                        final Activity activity = (Activity) mContext;
+                        if (!activity.isDestroyed()) {
                             Glide
                                     .with(mContext)
                                     .load(R.drawable.play)
@@ -270,13 +259,15 @@ public class MusicPlayerFragment extends Fragment {
         audioManager.abandonAudioFocus(_audioFocusChangeListener);
     }
 
-    public void createTimerSongs(){
+
+//Start of Creating Timer
+    public void createTimerSongs() {
         timer = new Timer();
         timer.scheduleAtFixedRate(new TimerTask() {
             @Override
             public void run() {
 
-                if (mediaPlayer!=null || mediaPlayer.isPlaying()) {
+                if (mediaPlayer != null || mediaPlayer.isPlaying()) {
                     binding.updateTimeOfSong.post(new Runnable() {
                         @Override
                         public void run() {
@@ -285,29 +276,32 @@ public class MusicPlayerFragment extends Fragment {
                             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                                 binding.musicProgressBar.setMin(0);
                             }
+                            totalDuration = mediaPlayer.getDuration();
                             binding.musicProgressBar.setMax(mediaPlayer.getDuration());
-                            binding.updateTimeOfSong.setText(timeToMinutes(currentDuration[0])+"."+timeToSeconds(currentDuration[0]));
+                            binding.updateTimeOfSong.setText(timeToMinutes(currentDuration[0]) + "." + timeToSeconds(currentDuration[0]));
+                            binding.remainingTimeOfSong.setText(remaningTime(totalDuration, currentDuration[0]));
                             binding.musicProgressBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
                                 @Override
                                 public void onProgressChanged(SeekBar seekBar, int i, boolean b) {
-                                         if(b){
-                                             currentDuration[0] =i;
-                                             mediaPlayer.seekTo(i);
-                                             binding.updateTimeOfSong.setText(timeToMinutes(currentDuration[0])+"."+timeToSeconds(currentDuration[0]));
-                                             Log.d(TAG, "onProgressChanged: Change");
-                                         }
+                                    if (b) {
+                                        currentDuration[0] = i;
+                                        mediaPlayer.seekTo(i);
+                                        binding.updateTimeOfSong.setText(timeToMinutes(currentDuration[0]) + "." + timeToSeconds(currentDuration[0]));
+                                        binding.remainingTimeOfSong.setText(remaningTime(totalDuration, currentDuration[0]));
+                                        Log.d(TAG, "onProgressChanged: Change");
+                                    }
 
                                 }
 
                                 @Override
                                 public void onStartTrackingTouch(SeekBar seekBar) {
-                                   binding.musicProgressBar.computeScroll();
+                                    binding.musicProgressBar.computeScroll();
                                 }
 
                                 @Override
                                 public void onStopTrackingTouch(SeekBar seekBar) {
 
-                                   // mediaPlayer.seekTo(seekBar.getProgress());
+                                    // mediaPlayer.seekTo(seekBar.getProgress());
                                     //binding.updateTimeOfSong.setText(String.format("%2d.%2d", TimeUnit.MILLISECONDS.toMinutes(currentDuration),TimeUnit.MILLISECONDS.toSeconds(currentDuration)-TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(currentDuration))));
                                 }
                             });
@@ -315,37 +309,113 @@ public class MusicPlayerFragment extends Fragment {
                         }
                     });
                 } else {
-                    
+
                     timer.cancel();
                     timer.purge();
                 }
             }
 
         }, 0, 1000);
-        
-    }
 
-    public String timeToMinutes(int duration){
-        String minuteString="";
-        duration=(int)TimeUnit.MILLISECONDS.toMinutes(duration);
-        if(duration<10){
-            minuteString="0"+duration;
+    }
+    //End
+
+    //Start of timeToMinutes
+    public String timeToMinutes(int duration) {
+        String minuteString = "";
+        duration = (int) TimeUnit.MILLISECONDS.toMinutes(duration);
+        if (duration < 10) {
+            minuteString = "0" + duration;
             return minuteString;
-        }else{
-            minuteString=duration+"";
+        } else {
+            minuteString = duration + "";
             return minuteString;
         }
     }
-    public String timeToSeconds(int duration){
-        String secondString="";
-        duration=(int)(TimeUnit.MILLISECONDS.toSeconds(duration)-TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(duration)));
-        if(duration<10){
-            secondString="0"+duration;
+    //End
+
+    //Start fo timeToSeconds
+    public String timeToSeconds(int duration) {
+        String secondString = "";
+        duration = (int) (TimeUnit.MILLISECONDS.toSeconds(duration) - TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(duration)));
+        if (duration < 10) {
+            secondString = "0" + duration;
             return secondString;
-        }else{
-            secondString=duration+"";
+        } else {
+            secondString = duration + "";
             return secondString;
         }
     }
+   //END
+
+    //Start of remaingTime
+    public String remaningTime(int totalDuration, int currentDuration) {
+        String remainTime = "";
+        int currentTimeLong = totalDuration - currentDuration;
+        remainTime = timeToMinutes(currentTimeLong) + "." + timeToSeconds(currentTimeLong);
+        return remainTime;
+    }
+    //END
+
+    //Start of playPrevSong
+    public void playPrevSong() {
+        if (position > 0) {
+            position--;
+            Songs song = songsList.get(position);
+            songUri = song.getSongUri();
+             setMediaPlayer();
+        }
+    }
+   //End
+
+    //Start of playNextSong
+    public void playNextSong(){
+        if(position<songsList.size() && position>=0){
+            position++;
+            Songs song=songsList.get(position);
+            songUri=song.getSongUri();
+            setMediaPlayer();
+        }
+    }
+    //END
+
+    //Start of setMediaPlayer
+    public void setMediaPlayer() {
+
+        if (grabAudioFocus()) {
+
+            Log.d(TAG, "onAudioFocusChange: " + grabAudioFocus());
+            mediaPlayer.reset();//Causing no effect when create first time.
+            mediaPlayer.setAudioAttributes(
+                    new AudioAttributes.Builder()
+                            .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
+                            .setUsage(AudioAttributes.USAGE_MEDIA)
+                            .build()
+            );
+            try {
+                mediaPlayer.setDataSource(mContext, songUri);
+                mediaPlayer.setWakeMode(mContext, PowerManager.PARTIAL_WAKE_LOCK);
+                mediaPlayer.prepare();
+                Log.d(TAG, "onClick: Start");
+                mediaPlayer.start();
+                Glide
+                        .with(mContext)
+                        .load(R.drawable.pause)
+                        .centerCrop()
+                        .into(binding.musicPlayerPlayButton);
+                // Log.d(TAG, "onFragmentResult: "+mediaPlayer.getDuration()+mediaPlayer.getCurrentPosition());
+                createTimerSongs();
+
+
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        } else {
+            Toast.makeText(mContext, "Check", Toast.LENGTH_SHORT).show();
+        }
+
+    }
+    //END
+
 
 }
