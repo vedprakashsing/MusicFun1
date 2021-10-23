@@ -1,10 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/musicPlayerFragment"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:forceDarkAllowed="true"
     android:tag="@string/musicPlayerFragment"
     android:orientation="vertical"
     tools:context=".MusicPlayerFragment">
@@ -24,8 +25,23 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:background="@drawable/player_area_background"
+            android:background="?attr/player_area_background"
             android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/currentSongName"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/songName"
+                android:textColor="@color/black"
+                android:ellipsize="marquee"
+                android:singleLine="true"
+                android:marqueeRepeatLimit="marquee_forever"
+                android:scrollHorizontally="true"
+                android:layout_gravity="center"
+                android:paddingLeft="10dp"
+                android:paddingRight="10dp"
+                android:layout_marginTop="5dp" />
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -38,7 +54,8 @@
                     android:layout_marginStart="8dp"
                     android:layout_marginTop="12dp"
                     android:text="00.00"
-                    android:textStyle="bold" />
+                    android:textStyle="bold"
+                    android:textColor="@color/black"/>
 
                 <SeekBar
                     android:id="@+id/musicProgressBar"
@@ -55,7 +72,8 @@
                     android:layout_marginTop="12dp"
                     android:layout_marginEnd="8dp"
                     android:text="00.00"
-                    android:textStyle="bold" />
+                    android:textStyle="bold"
+                    android:textColor="@color/black"/>
             </LinearLayout>
 
             <LinearLayout
@@ -63,13 +81,13 @@
                 android:layout_height="wrap_content">
 
                 <ImageView
-                    android:id="@+id/loopOption"
+                    android:id="@+id/shuffleOption"
                     android:layout_width="20dp"
                     android:layout_height="20dp"
                     android:layout_marginTop="18dp"
                     android:layout_marginBottom="8dp"
                     android:layout_marginStart="20dp"
-                    android:src="@drawable/loop_button"/>
+                    android:src="@drawable/shuffle_button"/>
                 <View
                     android:layout_width="0dp"
                     android:layout_height="0dp"
@@ -106,6 +124,15 @@
                     android:layout_height="0dp"
                     android:layout_weight="1"/>
 
+                <ImageView
+                    android:id="@+id/loopOption"
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:layout_marginTop="18dp"
+                    android:layout_marginBottom="8dp"
+                    android:layout_marginEnd="20dp"
+                    android:src="@drawable/loop_button"/>
+
             </LinearLayout>
 
 
@@ -118,9 +145,10 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="5dp"
+        android:forceDarkAllowed="true"
         app:lottie_autoPlay="true"
         app:lottie_loop="true"
-        app:lottie_rawRes="@raw/musicplay"/>
+        app:lottie_rawRes="?attr/musicplay"/>
 
 
-</FrameLayout>
+</LinearLayout>

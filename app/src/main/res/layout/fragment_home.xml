@@ -12,6 +12,7 @@
         android:id="@+id/animationView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:forceDarkAllowed="true"
         app:lottie_rawRes="@raw/welcome"
         app:lottie_autoPlay="true"
         app:lottie_loop="true"/>

@@ -4,6 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:forceDarkAllowed="false"
     tools:context=".MainActivity">
 
     <androidx.fragment.app.FragmentContainerView
@@ -27,11 +28,13 @@
         android:layout_marginBottom="4dp"
         android:layout_marginEnd="4dp"
         android:layout_marginStart="4dp"
-        android:background="@drawable/bottom_naviagtionbar_background"
+        android:background="?attr/bottom_navigationbar_backgroung"
         app:elevation="10dp"
+        android:forceDarkAllowed="true"
         app:itemBackground="@drawable/ripple"
-        app:itemIconTint="@drawable/item_icon_tint"
+        app:itemIconTint="@color/item_icon_tint"
         app:itemRippleColor="@drawable/ripple"
+        app:itemTextColor="?attr/item_text_color"
         app:menu="@menu/home_bottom_toolbar_menu"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"

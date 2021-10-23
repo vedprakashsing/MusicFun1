@@ -6,6 +6,7 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
+import androidx.core.content.res.ResourcesCompat;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentActivity;
 import androidx.fragment.app.FragmentManager;
@@ -14,13 +15,19 @@ import androidx.lifecycle.ViewModel;
 import androidx.lifecycle.ViewModelProvider;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.content.res.ColorStateList;
+import android.graphics.Color;
+import android.graphics.drawable.Drawable;
+import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Toast;
+import android.content.res.Configuration;
 
 import com.google.android.material.navigation.NavigationBarView;
 import com.spotify.android.appremote.api.ConnectionParams;
@@ -29,6 +36,8 @@ import com.spotify.android.appremote.api.SpotifyAppRemote;
 import com.spotify.protocol.types.Track;
 import com.spotify.sdk.android.authentication.AuthenticationClient;
 import com.spotify.sdk.android.authentication.AuthenticationResponse;
+
+import org.xmlpull.v1.XmlPullParser;
 
 import io.app.musicfun.ViewModel.SongListViewModel;
 import io.app.musicfun.databinding.ActivityMainBinding;
@@ -44,6 +53,8 @@ public class MainActivity extends AppCompatActivity {
     public SpotifyAppRemote mSpotifyAppRemote;
     private boolean checkPermission;
     int nexItem;
+    int [][]states;
+    int[]color;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -122,7 +133,7 @@ public class MainActivity extends AppCompatActivity {
                 });
     }
 
-
+//Start of bottomNavigation
     public void bottomNavigation(View view) {
         binding.bottomToolbar.setOnItemSelectedListener(
                 new NavigationBarView.OnItemSelectedListener() {
@@ -188,6 +199,39 @@ public class MainActivity extends AppCompatActivity {
                 }
         );
         //Reacting according to ItemId
+    }
+    //END
+
+
+    //Start of onConfigurationChange
+   public void onConfigurationChanged (Configuration newConfig){
+        super.onConfigurationChanged(newConfig);
+
+        int currentConfigMode= newConfig.uiMode & Configuration.UI_MODE_NIGHT_MASK;
+        switch (currentConfigMode){
+            case Configuration.UI_MODE_NIGHT_NO:
+                binding.bottomToolbar.setBackground(ContextCompat.getDrawable(MainActivity.this,R.drawable.bottom_navigationbar_background));
+                ColorStateList colorStateList=getResources().getColorStateList(R.color.item_text_color,null);
+                binding.bottomToolbar.setItemTextColor(colorStateList);
+
+                Log.d("tag", "onConfigurationChanged: "+colorStateList);
+                break;
+            case Configuration.UI_MODE_NIGHT_YES:
+
+                 binding.bottomToolbar.setBackground(ContextCompat.getDrawable(MainActivity.this,R.drawable.bottom_navigationbar_background_night));
+                 colorStateList=getColorStateList(R.color.item_text_color_night);
+                 binding.bottomToolbar.setItemTextColor(colorStateList);
+                break;
+            default:
+                throw new IllegalStateException("Unexpected value: " + currentConfigMode);
+        }
+
+    }
+
+
+    @Override
+    protected void onNightModeChanged(int mode) {
+        super.onNightModeChanged(mode);
     }
 
     @Override

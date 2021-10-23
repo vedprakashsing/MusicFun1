@@ -56,6 +56,7 @@ public class MusicPlayerFragment extends Fragment {
     private Timer timer;
     private int position;
     private int totalSong;
+    private String currentSongName;
     private SongListViewModel songListViewModel;
     private List<Songs> songsList;
 
@@ -386,6 +387,8 @@ public class MusicPlayerFragment extends Fragment {
 
             Log.d(TAG, "onAudioFocusChange: " + grabAudioFocus());
             mediaPlayer.reset();//Causing no effect when create first time.
+            binding.currentSongName.setText(songsList.get(position).getTitle());
+            binding.currentSongName.setSelected(true);
             mediaPlayer.setAudioAttributes(
                     new AudioAttributes.Builder()
                             .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
@@ -403,9 +406,7 @@ public class MusicPlayerFragment extends Fragment {
                         .load(R.drawable.pause)
                         .centerCrop()
                         .into(binding.musicPlayerPlayButton);
-                // Log.d(TAG, "onFragmentResult: "+mediaPlayer.getDuration()+mediaPlayer.getCurrentPosition());
                 createTimerSongs();
-
 
             } catch (IOException e) {
                 e.printStackTrace();
