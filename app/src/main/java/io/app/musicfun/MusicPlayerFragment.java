@@ -13,13 +13,10 @@ import android.os.Build;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
-import androidx.core.app.ActivityCompat;
 import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentActivity;
 import androidx.fragment.app.FragmentResultListener;
 import androidx.lifecycle.ViewModelProvider;
 
-import android.os.Parcelable;
 import android.os.PowerManager;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -31,16 +28,14 @@ import android.widget.Toast;
 import com.bumptech.glide.Glide;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.TimeUnit;
 
-import io.app.musicfun.ListAdapter.SongListAdapter;
 import io.app.musicfun.Models.Songs;
 import io.app.musicfun.ViewModel.SongListViewModel;
-import io.app.musicfun.databinding.FragmentHomeBinding;
 import io.app.musicfun.databinding.FragmentMusicPlayerBinding;
 
 
@@ -59,6 +54,7 @@ public class MusicPlayerFragment extends Fragment {
     private String currentSongName;
     private SongListViewModel songListViewModel;
     private List<Songs> songsList;
+    private boolean shuffleSet;
 
 
     public MusicPlayerFragment() {
@@ -82,11 +78,42 @@ public class MusicPlayerFragment extends Fragment {
                 // We use a String here, but any type that can be put in a Bundle is supported
                 result = bundle.getString("songUriStringKey");
                 position = bundle.getInt("songPositionKey");
+                Log.d(TAG, "playNext "+position);
                 totalSong = bundle.getInt("totalSongKey");
                 songsList = songListViewModel.getSongsList();
                 Log.d(TAG, "songPosition:-" + position + totalSong + songsList.size());
                 songUri = Uri.parse(result);
-                setMediaPlayer();
+
+                //Check loop and shuffle'
+                if(songListViewModel.isLoopingSong()) {
+                    Log.d(TAG, "songListView"+songListViewModel.isLoopingSong());
+                    if (mediaPlayer.isLooping()) {
+                        binding.loopOption.setBackground(getActivity().getDrawable(R.drawable.selected_menu_in_player_background));
+                        setMediaPlayer();
+                    }else{
+                        binding.loopOption.setBackground(getActivity().getDrawable(R.drawable.selected_menu_in_player_background));
+                        setMediaPlayer();
+                        mediaPlayer.setLooping(true);
+                    }
+                }
+                //END
+
+                //Check Shuffle
+                else if(songListViewModel.isShuffleSong()) {
+                    if (shuffleSet) {
+                        binding.shuffleOption.setBackground(getActivity().getDrawable(R.drawable.selected_menu_in_player_background));
+                        setMediaPlayer();
+                    }else{
+                        shuffleSet=true;
+                        binding.shuffleOption.setBackground(getActivity().getDrawable(R.drawable.selected_menu_in_player_background));
+                        setMediaPlayer();
+                    }
+                }
+                //END
+
+               else {
+                    setMediaPlayer();
+                }
             }
         });
         //END
@@ -105,6 +132,49 @@ public class MusicPlayerFragment extends Fragment {
             @Override
             public void onClick(View view){
                 playNextSong();
+            }
+        });
+        //END
+
+
+
+        //Setting onClickListener to set Loop
+        binding.loopOption.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+
+                if(!songListViewModel.isLoopingSong()){
+                    Toast.makeText(getContext(),"Loop Get ON",Toast.LENGTH_SHORT).show();
+                    mediaPlayer.setLooping(true);
+                    songListViewModel.setLoopingSong(true);
+                    binding.loopOption.setBackground(getActivity().getDrawable(R.drawable.selected_menu_in_player_background));
+                }else {
+                    Toast.makeText(getContext(),"Shuffle Get OFF",Toast.LENGTH_SHORT).show();
+                    mediaPlayer.setLooping(false);
+                    songListViewModel.setLoopingSong(false);
+                    binding.loopOption.setBackground(getActivity().getDrawable(R.drawable.non_selected_menu_player_background));
+                }
+            }
+        });
+        //END
+
+
+        //Setting onClickListenr to set randomSong
+        binding.shuffleOption.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if(!songListViewModel.isShuffleSong()){
+                    Toast.makeText(getContext(),"Shuffle Get ON",Toast.LENGTH_SHORT).show();
+                    shuffleSet=true;
+                    songListViewModel.setShuffleSong(true);
+                    binding.shuffleOption.setBackground(getActivity().getDrawable(R.drawable.selected_menu_in_player_background));
+                }else{
+                    Toast.makeText(getContext(),"Shuffle Get OFF",Toast.LENGTH_SHORT).show();
+                    shuffleSet=false;
+                    songListViewModel.setShuffleSong(false);
+                    binding.shuffleOption.setBackground(getActivity().getDrawable(R.drawable.non_selected_menu_player_background));
+                }
+
             }
         });
         //END
@@ -144,18 +214,22 @@ public class MusicPlayerFragment extends Fragment {
             @Override
             public void onCompletion(MediaPlayer mediaPlayer) {
                 binding.musicProgressBar.setProgress(mediaPlayer.getDuration());
-                mediaPlayer.reset();
-                try {
-                    mediaPlayer.setDataSource(mContext, songUri);
-                    mediaPlayer.prepare();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
+                Log.d(TAG, " playNextonCompletion: "+position);
                 Glide
                         .with(mContext)
                         .load(R.drawable.play)
                         .centerCrop()
                         .into(binding.musicPlayerPlayButton);
+
+                if(mediaPlayer.isLooping()){
+                    mediaPlayer.start();
+                }else if(shuffleSet){
+                        Random positionRandom = new Random();
+                        position = positionRandom.nextInt(songsList.size() - 1);
+                        playNextSong();
+                }else {
+                    playNextSong();
+                }
             }
         });
         //END
@@ -360,7 +434,11 @@ public class MusicPlayerFragment extends Fragment {
 
     //Start of playPrevSong
     public void playPrevSong() {
-        if (position > 0) {
+
+        if(position<=0){
+            position=songsList.size();
+        }
+        if (position >= 1) {
             position--;
             Songs song = songsList.get(position);
             songUri = song.getSongUri();
@@ -371,8 +449,15 @@ public class MusicPlayerFragment extends Fragment {
 
     //Start of playNextSong
     public void playNextSong(){
-        if(position<songsList.size() && position>=0){
+          if(position>=songsList.size()-1){
+              position=0;
+              Songs song=songsList.get(position);
+              songUri=song.getSongUri();
+              setMediaPlayer();
+              Log.d(TAG, "playNextSong: "+songsList.size());
+          }else if(position<songsList.size()-1 && position>=0){
             position++;
+            Log.d(TAG, "playNextSong:postion "+position);
             Songs song=songsList.get(position);
             songUri=song.getSongUri();
             setMediaPlayer();
