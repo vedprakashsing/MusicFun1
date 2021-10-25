@@ -21,6 +21,72 @@
         app:layout_constraintVertical_bias="1.0"
         app:navGraph="@navigation/nav_graph" />
 
+    <androidx.cardview.widget.CardView
+        android:id="@+id/musicMiniPlayer"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="5dp"
+        android:layout_marginTop="30dp"
+        android:layout_marginEnd="5dp"
+        android:visibility="gone"
+        app:cardCornerRadius="5dp"
+        app:layout_constraintBottom_toTopOf="@id/bottomToolbar"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="?attr/player_area_background"
+            android:orientation="horizontal">
+
+            <ImageView
+                android:id="@+id/musicShortThumbnail"
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:layout_marginTop="10dp"
+                android:layout_marginBottom="10dp"
+                android:src="@drawable/music_logo"/>
+
+            <TextView
+                android:id="@+id/currentShortSongName"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/songName"
+                android:textColor="@color/black"
+                android:singleLine="true"
+                android:layout_marginStart="5dp"
+                android:layout_gravity="center"
+                android:textStyle="bold" />
+
+            <View
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                android:layout_weight="1"/>
+
+            <ProgressBar
+                android:id="@+id/progressBarShort"
+                style="?android:attr/progressBarStyle"
+                android:layout_width="34dp"
+                android:layout_height="37dp"
+                android:layout_gravity="center"
+                android:indeterminate="true"
+                android:indeterminateDrawable="@drawable/play"
+                android:layout_marginEnd="10dp"/>
+
+            <ImageView
+                android:id="@+id/musicShortNextButton"
+                android:layout_width="34dp"
+                android:layout_height="34dp"
+                android:src="@drawable/next_button"
+                android:layout_gravity="center"
+                android:layout_marginEnd="20dp"/>
+
+        </LinearLayout>
+
+
+    </androidx.cardview.widget.CardView>
+
     <com.google.android.material.bottomnavigation.BottomNavigationView
         android:id="@+id/bottomToolbar"
         android:layout_width="match_parent"
@@ -39,5 +105,7 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"/>
+
+
 
 </androidx.constraintlayout.widget.ConstraintLayout>

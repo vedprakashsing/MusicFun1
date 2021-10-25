@@ -1,7 +1,7 @@
 package io.app.musicfun.Models;
 
 import android.net.Uri;
-
+import android.graphics.Bitmap;
 
 public class Songs {
     private Uri songUri;
@@ -11,9 +11,10 @@ public class Songs {
     private long id;
     private int duration;
     private int size;
+    private Bitmap thumbnail;
 
 
-    public Songs(Uri songUri, String name, String artist, String title, long id, int duration, int size) {
+    public Songs(Uri songUri, String name, String artist, String title, long id, int duration, int size,Bitmap thumbnail) {
         this.songUri = songUri;
         this.name = name;
         this.artist = artist;
@@ -21,6 +22,7 @@ public class Songs {
         this.id = id;
         this.duration = duration;
         this.size = size;
+        this.thumbnail=thumbnail;
     }
 
     public Uri getSongUri() {
@@ -77,5 +79,13 @@ public class Songs {
 
     public void setSize(int size) {
         this.size = size;
+    }
+
+    public void setThumbnail(Bitmap thumbnail){
+        this.thumbnail=thumbnail;
+    }
+
+    public Bitmap getThumbnail(){
+        return thumbnail;
     }
 }

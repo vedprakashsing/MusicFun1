@@ -6,15 +6,19 @@ import android.Manifest;
 import android.content.ContentUris;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 
+import androidx.activity.OnBackPressedCallback;
 import androidx.activity.result.ActivityResultCallback;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
+import androidx.annotation.RequiresApi;
 import androidx.core.app.ActivityCompat;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -22,6 +26,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import android.os.Environment;
 import android.provider.MediaStore;
 import android.util.Log;
+import android.util.Size;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -44,8 +49,22 @@ public class DeviceMusicFragment extends Fragment {
     private FragmentDeviceMusicFragementBinding binding;
     private SongListViewModel songListViewModel;
 
+
     public DeviceMusicFragment() {
         // Required empty public constructor
+    }
+
+    @Override
+    public void onStart(){
+        super.onStart();
+        OnBackPressedCallback onBackPressedCallback = new OnBackPressedCallback(true){
+
+            @Override
+            public void handleOnBackPressed(){
+
+            }
+        };
+        getActivity().getOnBackPressedDispatcher().addCallback(this,onBackPressedCallback);
     }
 
 
@@ -69,7 +88,9 @@ public class DeviceMusicFragment extends Fragment {
             }
         };
 
-        songs=getSongs();
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            songs=getSongs();
+        }
         SongListAdapter songListAdapter=new SongListAdapter(this.getContext(),songs,adapterToFragment);
         binding.songsRecyclerView.setLayoutManager(new LinearLayoutManager(this.getContext()));
         binding.songsRecyclerView.setAdapter(songListAdapter);
@@ -78,6 +99,7 @@ public class DeviceMusicFragment extends Fragment {
     }
 
    //Get the list of Songs
+    @RequiresApi(api = Build.VERSION_CODES.Q)
     public List<Songs> getSongs() {
 
         List<Songs> songs = new ArrayList<Songs>();
@@ -129,13 +151,20 @@ public class DeviceMusicFragment extends Fragment {
                 String artist = cursor.getString(artistColumn);
                 String title = cursor.getString(titleColumn);
                 //String songUri=cursor.getString(songsUri);
+                Uri contentUri = ContentUris.withAppendedId(
+                        MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, id);
+                Bitmap thumbnail=null;
+                try {
+                    thumbnail = getContext().getContentResolver().loadThumbnail(contentUri, new Size(600,600), null);
+                }catch (Exception e){
+                     thumbnail= BitmapFactory.decodeResource(getResources(),R.drawable.music_logo);
+                }
 
                 Log.d(TAG, "onCreateView: huu" + name);
 
-                Uri contentUri = ContentUris.withAppendedId(
-                        MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, id);
+
                 // Log.d(TAG, "onCreateView: huu" + name+"check:-"+songUri+"Check:-"+contentUri);
-                Songs song = new Songs(contentUri, name, artist, title, id, duration, size);
+                Songs song = new Songs(contentUri, name, artist, title, id, duration, size,thumbnail);
                 songs.add(song);
             }
             cursor.close();

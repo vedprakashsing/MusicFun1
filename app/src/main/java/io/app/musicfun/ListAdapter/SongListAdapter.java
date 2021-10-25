@@ -2,7 +2,9 @@ package io.app.musicfun.ListAdapter;
 
 import static android.content.ContentValues.TAG;
 
+import android.app.Activity;
 import android.content.Context;
+import android.graphics.Bitmap;
 import android.media.AudioAttributes;
 import android.media.AudioFocusRequest;
 import android.media.AudioManager;
@@ -16,6 +18,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -53,6 +56,7 @@ public class SongListAdapter extends RecyclerView.Adapter<SongListAdapter.ViewHo
         private final TextView duration;
         private final TextView artist;
         private final CardView deviceMusicCardView;
+        private final ImageView thumbnail;
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
             Log.d(TAG, "ViewHolder:DeviceFragment");
@@ -61,6 +65,8 @@ public class SongListAdapter extends RecyclerView.Adapter<SongListAdapter.ViewHo
              duration=itemView.findViewById(R.id.songDuration);
              artist=itemView.findViewById(R.id.songArtist);
              deviceMusicCardView=itemView.findViewById(R.id.deviceMusicCardView);
+             thumbnail=itemView.findViewById(R.id.songThumbnail);
+
         }
 
     }
@@ -83,10 +89,10 @@ public class SongListAdapter extends RecyclerView.Adapter<SongListAdapter.ViewHo
         String title= songs.getTitle();
         int duration=  songs.getDuration();
         String artist= songs.getArtist();
+        Bitmap thumbnail=songs.getThumbnail();
         Log.d(TAG, "position"+songPosition);
-        float reConvertDuration=(float) duration;
-        reConvertDuration=reConvertDuration/60000;
 
+        holder.thumbnail.setImageBitmap(thumbnail);
         holder.title.setText(title);
         //holder.name.setText("NAME:-"+name);
         holder.duration.setText("Duration:-"+ TimeUnit.SECONDS.toMinutes(TimeUnit.MILLISECONDS.toSeconds(duration))+"."+(TimeUnit.MILLISECONDS.toSeconds(duration)-TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(duration))));
@@ -95,6 +101,10 @@ public class SongListAdapter extends RecyclerView.Adapter<SongListAdapter.ViewHo
         holder.deviceMusicCardView.setOnClickListener(new View.OnClickListener(){
             @Override
             public void onClick(View view){
+                Log.d(TAG, "MinimusicPlayer"+((Activity)view.getContext()).findViewById(R.id.musicMiniPlayer).getVisibility());
+                if(((Activity)view.getContext()).findViewById(R.id.musicMiniPlayer).getVisibility()==View.VISIBLE){
+                    ((Activity)view.getContext()).findViewById(R.id.musicMiniPlayer).setVisibility(View.GONE);
+                }
                 Bundle result=new Bundle();
                 Log.d(TAG, "getItemCount:-"+getItemCount());
                 result.putString("songUriStringKey",songs.getSongUri().toString());

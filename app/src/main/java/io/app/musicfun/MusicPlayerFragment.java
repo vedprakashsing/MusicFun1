@@ -2,6 +2,7 @@ package io.app.musicfun;
 
 import static android.content.ContentValues.TAG;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
 import android.media.AudioAttributes;
@@ -12,6 +13,7 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 
+import androidx.activity.OnBackPressedCallback;
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentResultListener;
@@ -22,6 +24,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.SeekBar;
 import android.widget.Toast;
 
@@ -61,6 +64,19 @@ public class MusicPlayerFragment extends Fragment {
         // Required empty public constructor
     }
 
+    @Override
+    public void onStart() {
+        super.onStart();
+        //Overriding BackPressed Action
+        OnBackPressedCallback callBack=new OnBackPressedCallback(true) {
+            @Override
+            public void handleOnBackPressed() {
+                getParentFragmentManager().popBackStack();
+                getActivity().findViewById(R.id.musicMiniPlayer).setVisibility(View.VISIBLE);
+            }
+        };
+     getActivity().getOnBackPressedDispatcher().addCallback(this,callBack);
+    }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -118,6 +134,20 @@ public class MusicPlayerFragment extends Fragment {
         });
         //END
 
+
+        //Setting onCLickListener to remove some view
+          binding.musicPlayerDownButton.setOnClickListener(new View.OnClickListener(){
+
+              @Override
+              public void onClick(View view){
+
+                  songListViewModel.setMediaPlayer(mediaPlayer);
+                  getParentFragmentManager().popBackStack();
+                  getActivity().findViewById(R.id.musicMiniPlayer).setVisibility(View.VISIBLE);
+              }
+          });
+        //END
+
         //Setting onCLickListener to play prev song
         binding.previousPlayButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -144,12 +174,12 @@ public class MusicPlayerFragment extends Fragment {
             public void onClick(View view) {
 
                 if(!songListViewModel.isLoopingSong()){
-                    Toast.makeText(getContext(),"Loop Get ON",Toast.LENGTH_SHORT).show();
+                    Toast.makeText(getContext(),"Loop Got ON",Toast.LENGTH_SHORT).show();
                     mediaPlayer.setLooping(true);
                     songListViewModel.setLoopingSong(true);
                     binding.loopOption.setBackground(getActivity().getDrawable(R.drawable.selected_menu_in_player_background));
                 }else {
-                    Toast.makeText(getContext(),"Shuffle Get OFF",Toast.LENGTH_SHORT).show();
+                    Toast.makeText(getContext(),"Loop Got OFF",Toast.LENGTH_SHORT).show();
                     mediaPlayer.setLooping(false);
                     songListViewModel.setLoopingSong(false);
                     binding.loopOption.setBackground(getActivity().getDrawable(R.drawable.non_selected_menu_player_background));
@@ -164,12 +194,12 @@ public class MusicPlayerFragment extends Fragment {
             @Override
             public void onClick(View view) {
                 if(!songListViewModel.isShuffleSong()){
-                    Toast.makeText(getContext(),"Shuffle Get ON",Toast.LENGTH_SHORT).show();
+                    Toast.makeText(getContext(),"Shuffle Got ON",Toast.LENGTH_SHORT).show();
                     shuffleSet=true;
                     songListViewModel.setShuffleSong(true);
                     binding.shuffleOption.setBackground(getActivity().getDrawable(R.drawable.selected_menu_in_player_background));
                 }else{
-                    Toast.makeText(getContext(),"Shuffle Get OFF",Toast.LENGTH_SHORT).show();
+                    Toast.makeText(getContext(),"Shuffle Got OFF",Toast.LENGTH_SHORT).show();
                     shuffleSet=false;
                     songListViewModel.setShuffleSong(false);
                     binding.shuffleOption.setBackground(getActivity().getDrawable(R.drawable.non_selected_menu_player_background));
@@ -294,6 +324,9 @@ public class MusicPlayerFragment extends Fragment {
             }
         };
         //End of Implementation of AudioFocusChangeListener Interface.
+
+
+
 
         return view;
     }
@@ -472,6 +505,7 @@ public class MusicPlayerFragment extends Fragment {
 
             Log.d(TAG, "onAudioFocusChange: " + grabAudioFocus());
             mediaPlayer.reset();//Causing no effect when create first time.
+            binding.musicThumbnail.setImageBitmap(songsList.get(position).getThumbnail());
             binding.currentSongName.setText(songsList.get(position).getTitle());
             binding.currentSongName.setSelected(true);
             mediaPlayer.setAudioAttributes(
@@ -502,6 +536,8 @@ public class MusicPlayerFragment extends Fragment {
 
     }
     //END
+
+
 
 
 }

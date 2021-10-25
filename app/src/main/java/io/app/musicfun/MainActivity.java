@@ -322,5 +322,10 @@ public class MainActivity extends AppCompatActivity {
         Toast.makeText(MainActivity.this,"ActivityGetDestroed",Toast.LENGTH_SHORT).show();
      }
 
+     @Override
+    public void onBackPressed(){
+        super.onBackPressed();
+        MainActivity.this.onStop();
+     }
 
 }
